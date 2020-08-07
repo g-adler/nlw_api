@@ -11,6 +11,9 @@ interface ScheduleItem{
 
 export default class ClassesController{
     async index(req: Request, res: Response ){
+
+        res.setHeader('Access-Control-Allow-Origin', '*');
+
         const filters = req.query
 
         const subject = filters.subject as string
@@ -40,12 +43,13 @@ export default class ClassesController{
             .join('users',  'classes.user_id', '=', 'users_id' )
 
             .select(['classes.*', 'users.*' ])
-
+        
         return res.json()
 
     }
 
     async create( req: Request, res: Response ) {
+        
         const {
             name,
             avatar,
@@ -54,10 +58,10 @@ export default class ClassesController{
             subject,
             cost,
             schedule
-        } = req.body;
-    
+        } = req.body ;
+        
+        
         const trx = await db.transaction()
-    
         try{
             const insertedUsersIds = await trx('users').insert({
                 // name: name ,== name, 
@@ -76,7 +80,6 @@ export default class ClassesController{
             })
         
             const class_id = insertedClassesIds[0]
-        
             const classSchedule = schedule.map((scheduleItem:ScheduleItem) =>{
                 return{
                     class_id,
@@ -89,14 +92,12 @@ export default class ClassesController{
             await trx('class_schedule').insert(classSchedule)
         
             await trx.commit()
-            
             return res.status(201).send()
             
         } catch(err) {
             await trx.rollback
     
             console.log(err);
-            
             return res.status(400).json({
                 error: 'Unexpected error while creating new class'
             }) 

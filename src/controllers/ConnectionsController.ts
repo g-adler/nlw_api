@@ -5,6 +5,7 @@ export default class ConnectionsController{
     async index(request: Request, response: Response ){        
         const totalConnections = await db('connection').count('* as total')
         const { total }  = totalConnections[0]
+        response.setHeader('Access-Control-Allow-Origin', '*');
         
         return response.json({ total })
     }
